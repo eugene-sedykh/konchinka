@@ -11,8 +11,8 @@ import com.jjjackson.scopa.logic.util.InputUtil;
 import java.util.List;
 
 public class TurnMaker {
-    public static final int PLAY_CARD_X = 210;
-    public static final int PLAY_CARD_Y = 530;
+    public static final int PLAY_CARD_X = 205;
+    public static final int PLAY_CARD_Y = 475;
     private TurnState turnState = TurnState.WAIT;
     private MovingCard movingCard = new MovingCard();
     private TurnState nextTurnState;

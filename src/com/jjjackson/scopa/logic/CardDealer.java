@@ -126,7 +126,7 @@ public class CardDealer {
             this.isCardMoving = true;
         } else {
             if (this.movingCard.progress < 1) {
-                cardMover.updateCoordinates(this.movingCard, deltaTime);
+                cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
             } else {
                 finishMovement();
                 getUser(this.currentPlayerIndex).playCards.add(this.movingCard.card);
@@ -147,7 +147,7 @@ public class CardDealer {
             this.isCardMoving = true;
         } else {
             if (this.movingCard.progress < 1) {
-                cardMover.updateCoordinates(this.movingCard, deltaTime);
+                cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
             } else {
                 finishMovement();
                 this.state = DealState.JACK_IN;
@@ -163,7 +163,7 @@ public class CardDealer {
             this.isCardMoving = true;
         } else {
             if (this.movingCard.progress < 1) {
-                cardMover.updateCoordinates(this.movingCard, deltaTime);
+                cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
             } else {
                 finishMovement();
                 this.state = DealState.DEAL;

@@ -6,10 +6,12 @@ public class MovingCard {
     public int startY;
     public int endX;
     public int endY;
-    public int step = 1000;
+    public int step = 2000;
     public double speed;
     public double progress = 0;
-    public double x;
-    public double y;
     public boolean showBack;
+
+    public float startDegree;
+    public float endDegree;
+    public double rotationSpeed;
 }

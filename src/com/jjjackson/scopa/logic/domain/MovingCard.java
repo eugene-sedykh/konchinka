@@ -13,5 +13,4 @@ public class MovingCard {
 
     public float startDegree;
     public float endDegree;
-    public double rotationSpeed;
 }

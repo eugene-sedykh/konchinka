@@ -13,7 +13,6 @@ import java.util.List;
 public class TurnMaker {
     private TurnState turnState = TurnState.WAIT;
     private MovingCard movingCard = new MovingCard();
-    private TurnState nextTurnState;
     private CardMover cardMover = new CardMover();
     private Card playCard;
     private CardCombinator cardCombinator = new CardCombinator();
@@ -30,7 +29,6 @@ public class TurnMaker {
                     if (touchedCard != null) {
                         initCardMovement(touchedCard, GameConstants.PLAY_CARD_X, GameConstants.PLAY_CARD_Y);
                         this.turnState = TurnState.MOVE_PLAY_CARD;
-                        this.nextTurnState = TurnState.PICK_PLAY_CARD;
                     }
                     break;
                 case MOVE_PLAY_CARD:
@@ -48,8 +46,17 @@ public class TurnMaker {
                     combineCards(input.getTouchEvents(), players);
                     break;
                 case TAKE_PLAY_CARD:
-                    this.playCard.marked = !this.playCard.marked;
-                    this.turnState = TurnState.COMBINE_CARDS;
+                    if (this.movingCard.progress == -1) {
+                        initCardMovement(this.playCard, GameConstants.BOTTOM_BOARD_X,
+                                GameConstants.BOTTOM_BOARD_Y);
+                    } else if (this.movingCard.progress < 1) {
+                        this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
+                    } else {
+                        finishMovingCard();
+                        ((User) currentPlayer).boardCards.add(this.movingCard.card);
+                        this.turnCombinedCards.add(this.movingCard.card);
+                        this.turnState = TurnState.COMBINE_CARDS;
+                    }
                     break;
                 case TAKE_COMBINED_CARDS:
                     if (!this.combinedCards.isEmpty()) {
@@ -63,7 +70,9 @@ public class TurnMaker {
                             finishMovingCard();
                             ((User) currentPlayer).boardCards.add(this.movingCard.card);
                             this.turnCombinedCards.add(this.movingCard.card);
-                            getTableCards(players).remove(this.movingCard.card);
+                            List<Card> tableCards = getTableCards(players);
+                            tableCards.remove(this.movingCard.card);
+                            this.cardMover.recalculateCenterCardsPosition(tableCards, false);
                             this.combinedCards.remove(0);
                         }
                         return;

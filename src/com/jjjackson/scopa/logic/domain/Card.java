@@ -1,6 +1,5 @@
 package com.jjjackson.scopa.logic.domain;
 
-import android.graphics.Bitmap;
 import android.graphics.Point;
 
 public class Card {

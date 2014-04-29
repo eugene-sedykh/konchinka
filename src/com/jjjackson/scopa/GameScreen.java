@@ -18,8 +18,6 @@ public class GameScreen extends Screen {
     private boolean showFace;
     private Pixmap pixmap;
 
-    private int width = Assets.cards.get("c2").getWidth();
-    private int height = Assets.cards.get("c2").getHeight();
     private int markedColor;
 
     public GameScreen(Game game) {
@@ -74,7 +72,8 @@ public class GameScreen extends Screen {
         this.pixmap = this.showFace ? Assets.cards.get(card.shortName) : Assets.cards.get(BACK);
         graphics.drawPixmap(this.pixmap, card.position.x, card.position.y, card.degree);
         if (card.marked) {
-            graphics.drawRect(card.position.x, card.position.y, this.width, this.height + 30, this.markedColor);
+            graphics.drawRect(card.position.x, card.position.y, GameConstants.CARD_WIDTH, GameConstants.CARD_HEIGHT,
+                    this.markedColor);
         }
     }
 

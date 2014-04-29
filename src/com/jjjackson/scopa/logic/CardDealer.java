@@ -239,6 +239,7 @@ public class CardDealer {
                 calculateRight(cardNumber, destination);
                 break;
             case CENTER:
+                this.cardMover.recalculateCenterCardsPosition(player.playCards, true);
                 calculateCenter(cardNumber, destination);
                 break;
         }
@@ -246,8 +247,8 @@ public class CardDealer {
     }
 
     void calculateBottom(int cardNumber, Point destination) {
-        destination.x = 112 + cardNumber * (this.cardWidth + 20);
-        destination.y = 800 - this.cardHeight;
+        destination.x = 112 + cardNumber * (GameConstants.CARD_WIDTH + 20);
+        destination.y = 800 - GameConstants.CARD_HEIGHT;
     }
 
     void calculateLeft(int cardNumber, Point destination) {
@@ -256,17 +257,17 @@ public class CardDealer {
     }
 
     void calculateTop(int cardNumber, Point destination) {
-        destination.x = 25 + cardNumber * (this.cardWidth + 20);
+        destination.x = 25 + cardNumber * (GameConstants.CARD_WIDTH + 20);
         destination.y = 0;
     }
 
     void calculateRight(int cardNumber, Point destination) {
-        destination.x = 480 - this.cardWidth;
+        destination.x = 480 - GameConstants.CARD_WIDTH;
         destination.y = 400 + cardNumber * 25;
     }
 
     void calculateCenter(int cardNumber, Point destination) {
-        destination.x = 90 + cardNumber * (this.cardWidth + 4);
+        destination.x = 240 - (cardNumber + 1) * (GameConstants.CARD_WIDTH + 4) / 2 + (cardNumber) * (GameConstants.CARD_WIDTH + 4);
         destination.y = 225;
     }
 

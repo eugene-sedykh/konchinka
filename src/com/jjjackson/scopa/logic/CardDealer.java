@@ -4,6 +4,7 @@ import android.graphics.Point;
 import com.jjjackson.scopa.Assets;
 import com.jjjackson.scopa.logic.deal.DealState;
 import com.jjjackson.scopa.logic.domain.*;
+import com.jjjackson.scopa.logic.util.PositionCalculator;
 
 import java.util.Iterator;
 import java.util.List;
@@ -13,20 +14,18 @@ public class CardDealer {
     public final MovingCard movingCard = new MovingCard();
     private final List<CardHolder> players;
     private final Pack pack;
+    private States states;
     private final CardMover cardMover = new CardMover();
-    private int cardWidth = Assets.cards.get("c2").getWidth();
-    private int cardHeight = Assets.cards.get("c2").getHeight();
     private int jackX;
     private int jackY;
-    private GameBoard gameBoard;
     private DealState state = DealState.NONE;
     public boolean isCardMoving;
     private int currentPlayerIndex;
 
-    public CardDealer(List<CardHolder> players, Pack pack, CardPosition dealerPosition, GameBoard gameBoard) {
+    public CardDealer(List<CardHolder> players, Pack pack, CardPosition dealerPosition, States states) {
         this.players = players;
         this.pack = pack;
-        this.gameBoard = gameBoard;
+        this.states = states;
         computePackCoordinates(pack, dealerPosition);
         calculatePackSpeed(pack);
     }
@@ -89,6 +88,13 @@ public class CardDealer {
 
     private void movePack(float deltaTime, Point position, Point destination, boolean isPackOut) {
         if (this.pack.progress == 0) {
+            if (isPackOut) {
+                for (CardHolder cardHolder : this.players) {
+                    if (cardHolder.cardPosition == CardPosition.BOTTOM) {
+                        cardHolder.playCards.get(1).value = 11;
+                    }
+                }
+            }
             this.pack.position.x = !isPackOut ? this.pack.hidePosition.x : this.pack.displayPosition.x;
             this.pack.position.y = !isPackOut ? this.pack.hidePosition.y : this.pack.displayPosition.y;
         }
@@ -96,7 +102,7 @@ public class CardDealer {
             updatePackCoordinates(deltaTime, position, destination);
         } else {
             if (isPackOut) {
-                this.gameBoard.state = GameState.TURN;
+                this.states.game = GameState.TURN;
             } else {
                 this.state = DealState.DEAL;
             }
@@ -126,7 +132,7 @@ public class CardDealer {
             this.isCardMoving = true;
         } else {
             if (this.movingCard.progress < 1) {
-                cardMover.updateCoordinates(this.movingCard, deltaTime);
+                cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
             } else {
                 finishMovement();
                 getUser(this.currentPlayerIndex).playCards.add(this.movingCard.card);
@@ -147,7 +153,7 @@ public class CardDealer {
             this.isCardMoving = true;
         } else {
             if (this.movingCard.progress < 1) {
-                cardMover.updateCoordinates(this.movingCard, deltaTime);
+                cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
             } else {
                 finishMovement();
                 this.state = DealState.JACK_IN;
@@ -163,7 +169,7 @@ public class CardDealer {
             this.isCardMoving = true;
         } else {
             if (this.movingCard.progress < 1) {
-                cardMover.updateCoordinates(this.movingCard, deltaTime);
+                cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
             } else {
                 finishMovement();
                 this.state = DealState.DEAL;
@@ -175,7 +181,7 @@ public class CardDealer {
 
     private boolean isJackOnTable() {
         for (Card card : getUser(this.players.size() - 2).playCards) {
-            if (card.value == 11) {
+            if (card.value == GameConstants.JACK_VALUE) {
                 return true;
             }
         }
@@ -198,6 +204,7 @@ public class CardDealer {
         this.movingCard.card.position.y = this.pack.position.y;
         this.movingCard.startX = this.pack.position.x;
         this.movingCard.startY = this.pack.position.y;
+        this.movingCard.progress = 0;
         if (jackReplacement) {
             this.movingCard.endX = this.jackX;
             this.movingCard.endY = this.jackY;
@@ -227,47 +234,23 @@ public class CardDealer {
         Point destination = new Point();
         switch (player.cardPosition) {
             case BOTTOM:
-                calculateBottom(cardNumber, destination);
+                PositionCalculator.calcBottom(cardNumber, destination);
                 break;
             case LEFT:
-                calculateLeft(cardNumber, destination);
+                PositionCalculator.calcLeft(cardNumber, destination);
                 break;
             case TOP:
-                calculateTop(cardNumber, destination);
+                PositionCalculator.calcTop(cardNumber, destination);
                 break;
             case RIGHT:
-                calculateRight(cardNumber, destination);
+                PositionCalculator.calcRight(cardNumber, destination);
                 break;
             case CENTER:
-                calculateCenter(cardNumber, destination);
+                this.cardMover.changeCenterCardsPosition(player.playCards, true);
+                PositionCalculator.calcCenter(cardNumber, destination);
                 break;
         }
         return destination;
-    }
-
-    void calculateBottom(int cardNumber, Point destination) {
-        destination.x = 112 + cardNumber * (this.cardWidth + 20);
-        destination.y = 800 - this.cardHeight;
-    }
-
-    void calculateLeft(int cardNumber, Point destination) {
-        destination.x = 0;
-        destination.y = 400 + cardNumber * 25;
-    }
-
-    void calculateTop(int cardNumber, Point destination) {
-        destination.x = 25 + cardNumber * (this.cardWidth + 20);
-        destination.y = 0;
-    }
-
-    void calculateRight(int cardNumber, Point destination) {
-        destination.x = 480 - this.cardWidth;
-        destination.y = 400 + cardNumber * 25;
-    }
-
-    void calculateCenter(int cardNumber, Point destination) {
-        destination.x = 90 + cardNumber * (this.cardWidth + 4);
-        destination.y = 225;
     }
 
     public void prepareJackOut(Card jack) {
@@ -296,7 +279,7 @@ public class CardDealer {
         Iterator<Card> cards = table.playCards.iterator();
         while (cards.hasNext()) {
             Card card = cards.next();
-            if (card.value == 11) {
+            if (card.value == GameConstants.JACK_VALUE) {
                 cards.remove();
                 return card;
             }

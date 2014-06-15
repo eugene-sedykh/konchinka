@@ -33,7 +33,7 @@ public class MainMenuScreen extends Screen {
     public void present(float deltaTime) {
         Graphics graphics = this.game.getGraphics();
 
-        graphics.drawPixmap(Assets.mainMenu, 210, 300);
+        graphics.drawPixmap(Assets.mainMenu, 210, 300, 0);
     }
 
     @Override

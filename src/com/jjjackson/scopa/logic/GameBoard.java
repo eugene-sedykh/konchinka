@@ -2,6 +2,7 @@ package com.jjjackson.scopa.logic;
 
 import com.jjjackson.framework.Input;
 import com.jjjackson.scopa.logic.domain.*;
+import com.jjjackson.scopa.logic.turn.PlayerTurnMaker;
 import com.jjjackson.scopa.logic.turn.TurnMaker;
 
 import java.util.*;
@@ -12,7 +13,7 @@ public class GameBoard {
     public Pack pack = new Pack();
     public User user = new User(UserType.HUMAN, CardPosition.BOTTOM);
     public List<CardHolder> players = new ArrayList<>();
-    public GameState state;
+    public States states;
     private TurnMaker turnMaker;
 
     public GameBoard() {
@@ -25,9 +26,9 @@ public class GameBoard {
         User user = new User(UserType.PLAYER, CardPosition.BOTTOM);
         user.isCurrent = true;
         this.players.add(user);
-        this.state = GameState.NONE;
-        this.cardDealer = new CardDealer(this.players, this.pack, CardPosition.BOTTOM, this);
-        this.turnMaker = new TurnMaker();
+        this.states = new States();
+        this.cardDealer = new CardDealer(this.players, this.pack, CardPosition.BOTTOM, this.states);
+        this.turnMaker = new PlayerTurnMaker(this.states);
     }
 
     private void fillPack() {

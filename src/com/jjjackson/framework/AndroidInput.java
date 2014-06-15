@@ -65,10 +65,6 @@ public class AndroidInput implements Input {
 
     @Override
     public List<TouchEvent> getTouchEvents() {
-        //        for (TouchEvent touchEvent : touchEvents) {
-//            String msg = "x: " + touchEvent.x + "; y: " + touchEvent.y + "; type: " + touchEvent.type;
-//            Log.i(this.getClass().getName(), msg);
-//        }
         return this.touchHandler.getTouchEvents();
     }
 }

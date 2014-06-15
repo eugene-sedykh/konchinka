@@ -8,7 +8,7 @@ public class MovingCard {
     public int endY;
     public int step = 2000;
     public double speed;
-    public double progress = 0;
+    public double progress = -1;
     public boolean showBack;
 
     public float startDegree;

@@ -81,8 +81,13 @@ public class AndroidGraphics implements Graphics {
 
     @Override
     public void drawRect(int x, int y, int width, int height, int color) {
+        drawRect(x, y, width, height, color, Paint.Style.FILL);
+    }
+
+    @Override
+    public void drawRect(int x, int y, int width, int height, int color, Paint.Style style) {
         paint.setColor(color);
-        paint.setStyle(Paint.Style.FILL);
+        paint.setStyle(style);
         canvas.drawRect(x, y, x + width, y + height, paint);
     }
 
@@ -106,6 +111,11 @@ public class AndroidGraphics implements Graphics {
         this.canvas.rotate(degree, x, y);
         this.canvas.drawBitmap(((AndroidPixmap) pixmap).bitmap, x, y, null);
         this.canvas.restore();
+    }
+
+    @Override
+    public void drawText(String text, int x, int y, Paint paint) {
+        this.canvas.drawText(text, x, y, paint);
     }
 
     @Override

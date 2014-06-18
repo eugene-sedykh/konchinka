@@ -50,6 +50,9 @@ public class GameScreen extends Screen {
             case TURN:
                 this.gameBoard.makeTurn(this.game.getInput(), deltaTime);
                 break;
+            case NEXT_TURN:
+                this.gameBoard.switchPlayer();
+                break;
         }
     }
 

@@ -3,8 +3,6 @@ package com.jjjackson.scopa.logic.turn;
 import android.graphics.Point;
 import android.util.Log;
 import com.jjjackson.framework.Input;
-import com.jjjackson.scopa.Assets;
-import com.jjjackson.scopa.logic.CardMover;
 import com.jjjackson.scopa.logic.GameConstants;
 import com.jjjackson.scopa.logic.GameState;
 import com.jjjackson.scopa.logic.States;
@@ -32,169 +30,166 @@ public class PlayerTurnMaker extends TurnMaker {
     }
 
     @Override
-    public void make(Input input, List<CardHolder> players, float deltaTime) {
-        CardHolder currentPlayer = getCurrentPlayer(players);
-        if (isMyTurn(currentPlayer)) {
-            switch (this.states.turn) {
-                case WAIT:
-                    Card touchedCard = getTouchedCard(input.getTouchEvents(), currentPlayer.playCards);
-                    if (touchedCard != null) {
-                        initCardMovement(touchedCard, GameConstants.PLAY_CARD_X, GameConstants.PLAY_CARD_Y);
-                        this.states.turn = TurnState.MOVE_PLAY_CARD;
-                    }
-                    break;
-                case MOVE_PLAY_CARD:
-                    if (this.movingCard.progress < 1) {
-                        this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
-                    } else {
-                        finishMovingCard();
-                        this.playCard = this.movingCard.card;
-                        this.playCardValue = this.playCard.value;
-                        this.combinableCards = getCardsToTake(getPlayCardHeap(players));
-                        if (this.playCard.value != GameConstants.JACK_VALUE)
-                            if (this.combinableCards.isEmpty()) {
-                                this.states.turn = TurnState.PLAY_CARD_TO_TABLE;
-                            } else {
-                                this.states.turn = TurnState.COMBINE_CARDS;
-                                this.startTurnTableCardsNumber = getTableCards(players).size();
-                            }
-                        else {
-                            if (this.combinableCards.isEmpty() && getTableCards(players).isEmpty()) {
-                                this.states.turn = TurnState.PLAY_CARD_TO_TABLE;
-                            } else {
-                                this.states.turn = TurnState.COMBINE_JACK_CARDS;
-                                this.startTurnTableCardsNumber = getTableCards(players).size();
-                            }
-                        }
-                    }
-                    break;
-                case COMBINE_CARDS:
-                    combineCards(input.getTouchEvents(), players);
-                    break;
-                case COMBINE_JACK_CARDS:
-                    combineJackCards(input.getTouchEvents(), players);
-                    break;
-                case TAKE_PLAY_CARD:
-                    if (this.movingCard.progress == -1) {
-                        initCardMovement(this.playCard, GameConstants.BOTTOM_BOARD_X,
-                                GameConstants.BOTTOM_BOARD_Y);
-                    } else if (this.movingCard.progress < 1) {
-                        this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
-                    } else {
-                        finishMovingCard();
-                        ((User) currentPlayer).boardCards.add(this.movingCard.card);
-                        ((User) currentPlayer).playCards.remove(this.movingCard.card);
-                        this.turnCombinedCards.add(this.movingCard.card);
-                        this.playCard = null;
-                        this.states.turn = TurnState.COMBINE_CARDS;
-                    }
-                    break;
-                case TAKE_COMBINED_CARDS:
-                    if (!this.combinedCards.isEmpty()) {
-                        if (this.movingCard.progress == -1) {
-                            initCardMovement(this.combinedCards.get(0), GameConstants.BOTTOM_BOARD_X,
-                                    GameConstants.BOTTOM_BOARD_Y);
-                        } else if (this.movingCard.progress < 1) {
-                            this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
-                            Log.i("konchinka", "x: " + this.movingCard.card.position.x + "\ty: " + this.movingCard.card.position.y + "\tprogress: " + this.movingCard.progress);
-                        } else {
-                            finishMovingCard();
-                            ((User) currentPlayer).boardCards.add(this.movingCard.card);
-                            this.turnCombinedCards.add(this.movingCard.card);
-                            List<Card> tableCards = getTableCards(players);
-                            tableCards.remove(this.movingCard.card);
-                            if (this.playCard != null && this.playCard == this.movingCard.card) {
-                                currentPlayer.playCards.remove(this.playCard);
-                            }
-                            this.cardMover.changeCenterCardsPosition(tableCards, false);
-                            this.combinedCards.remove(0);
-                        }
-                        return;
-                    }
+    public void make(Input input, User currentPlayer, List<CardHolder> players, float deltaTime) {
+        switch (this.states.turn) {
+            case WAIT:
+                Card touchedCard = getTouchedCard(input.getTouchEvents(), currentPlayer.playCards);
+                if (touchedCard != null) {
+                    initCardMovement(touchedCard, GameConstants.PLAY_CARD_X, GameConstants.PLAY_CARD_Y);
+                    this.states.turn = TurnState.MOVE_PLAY_CARD;
+                }
+                break;
+            case MOVE_PLAY_CARD:
+                if (this.movingCard.progress < 1) {
+                    this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
+                } else {
+                    finishMovingCard();
+                    this.playCard = this.movingCard.card;
+                    this.playCardValue = this.playCard.value;
                     this.combinableCards = getCardsToTake(getPlayCardHeap(players));
-                    this.states.turn = this.nextTurnState;
-                    break;
-                case PLAY_CARD_TO_TABLE:
+                    if (this.playCard.value != GameConstants.JACK_VALUE)
+                        if (this.combinableCards.isEmpty()) {
+                            this.states.turn = TurnState.PLAY_CARD_TO_TABLE;
+                        } else {
+                            this.states.turn = TurnState.COMBINE_CARDS;
+                            this.startTurnTableCardsNumber = getTableCards(players).size();
+                        }
+                    else {
+                        if (this.combinableCards.isEmpty() && getTableCards(players).isEmpty()) {
+                            this.states.turn = TurnState.PLAY_CARD_TO_TABLE;
+                        } else {
+                            this.states.turn = TurnState.COMBINE_JACK_CARDS;
+                            this.startTurnTableCardsNumber = getTableCards(players).size();
+                        }
+                    }
+                }
+                break;
+            case COMBINE_CARDS:
+                combineCards(input.getTouchEvents(), players);
+                break;
+            case COMBINE_JACK_CARDS:
+                combineJackCards(input.getTouchEvents(), players);
+                break;
+            case TAKE_PLAY_CARD:
+                if (this.movingCard.progress == -1) {
+                    initCardMovement(this.playCard, GameConstants.BOTTOM_BOARD_X,
+                            GameConstants.BOTTOM_BOARD_Y);
+                } else if (this.movingCard.progress < 1) {
+                    this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
+                } else {
+                    finishMovingCard();
+                    currentPlayer.boardCards.add(this.movingCard.card);
+                    currentPlayer.playCards.remove(this.movingCard.card);
+                    this.turnCombinedCards.add(this.movingCard.card);
+                    this.playCard = null;
+                    this.states.turn = TurnState.COMBINE_CARDS;
+                }
+                break;
+            case TAKE_COMBINED_CARDS:
+                if (!this.combinedCards.isEmpty()) {
                     if (this.movingCard.progress == -1) {
-                        List<Card> tableCards = getTableCards(players);
-                        this.cardMover.changeCenterCardsPosition(tableCards, false);
-                        Point destination = new Point();
-                        PositionCalculator.calcCenter(tableCards.size(), destination);
-                        initCardMovement(this.playCard, destination.x, destination.y);
+                        initCardMovement(this.combinedCards.get(0), GameConstants.BOTTOM_BOARD_X,
+                                GameConstants.BOTTOM_BOARD_Y);
                     } else if (this.movingCard.progress < 1) {
                         this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
                         Log.i("konchinka", "x: " + this.movingCard.card.position.x + "\ty: " + this.movingCard.card.position.y + "\tprogress: " + this.movingCard.progress);
                     } else {
                         finishMovingCard();
-                        getTableCards(players).add(this.playCard);
-                        ((User) currentPlayer).playCards.remove(this.playCard);
-                        this.playCard = null;
-                        this.states.game = GameState.NEXT_TURN;
-                    }
-                    break;
-                case SHOW_END_TURN_BUTTON:
-                    List<Input.TouchEvent> touchEvents = input.getTouchEvents();
-                    if (isEndButtonPressed(touchEvents)) {
-                        finishTurn();
-                        this.states.game = GameState.NEXT_TURN;
-                        return;
-                    }
-                    if (isSortButtonPressed(touchEvents)) {
-                        this.states.turn = TurnState.SORT_CARDS_OUT;
-                        this.nextTurnState = TurnState.SORT_CARDS_PRESS;
-                        this.states.isFaded = true;
-                    }
-                    break;
-                case SHOW_TRICK_BUTTON:
-                    List<Input.TouchEvent> trickTouchEvents = input.getTouchEvents();
-                    if (isEndButtonPressed(trickTouchEvents)) {
-                        this.states.turn = TurnState.TRICK_CARDS_OUT;
-                        this.states.isFaded = true;
-                    }
-                    if (isSortButtonPressed(trickTouchEvents)) {
-                        this.states.turn = TurnState.SORT_CARDS_OUT;
-                        this.states.isFaded = true;
-                    }
-                    break;
-                case SORT_CARDS_OUT:
-                    if (!this.turnCombinedCards.isEmpty()) {
-                        takenCardsOut(deltaTime);
-                        return;
-                    }
-                    this.states.turn = TurnState.SORT_CARDS_PRESS;
-                    this.states.isSortDoneButtonShown = true;
-                    break;
-                case SORT_CARDS_PRESS:
-                    pressSortingCards(input.getTouchEvents(), getCurrentPlayer(players), deltaTime);
-                    break;
-                case SORT_CARDS_IN:
-                    if (!this.sortingCards.isEmpty()) {
-                        if (this.movingCard.progress == -1) {
-                            initCardMovement(this.sortingCards.get(this.sortingCards.size() - 1),
-                                    GameConstants.BOTTOM_BOARD_X, GameConstants.BOTTOM_BOARD_Y);
-                        } else if (this.movingCard.progress < 1) {
-                            this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
-                        } else {
-                            finishMovingCard();
-                            this.sortingCards.remove(this.movingCard.card);
-                            this.turnCombinedCards.add(this.movingCard.card);
-                            this.cardMover.changeCenterCardsPosition(this.sortingCards, false, true);
+                        currentPlayer.boardCards.add(this.movingCard.card);
+                        this.turnCombinedCards.add(this.movingCard.card);
+                        List<Card> tableCards = getTableCards(players);
+                        tableCards.remove(this.movingCard.card);
+                        if (this.playCard != null && this.playCard == this.movingCard.card) {
+                            currentPlayer.playCards.remove(this.playCard);
                         }
-                        return;
+                        this.cardMover.changeCenterCardsPosition(tableCards, false);
+                        this.combinedCards.remove(0);
                     }
-                    finishCardSorting();
-                    break;
-                case TRICK_CARDS_OUT:
-                    if (!this.turnCombinedCards.isEmpty()) {
-                        takenCardsOut(deltaTime);
-                        return;
+                    return;
+                }
+                this.combinableCards = getCardsToTake(getPlayCardHeap(players));
+                this.states.turn = this.nextTurnState;
+                break;
+            case PLAY_CARD_TO_TABLE:
+                if (this.movingCard.progress == -1) {
+                    List<Card> tableCards = getTableCards(players);
+                    this.cardMover.changeCenterCardsPosition(tableCards, false);
+                    Point destination = new Point();
+                    PositionCalculator.calcCenter(tableCards.size(), destination);
+                    initCardMovement(this.playCard, destination.x, destination.y);
+                } else if (this.movingCard.progress < 1) {
+                    this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
+                    Log.i("konchinka", "x: " + this.movingCard.card.position.x + "\ty: " + this.movingCard.card.position.y + "\tprogress: " + this.movingCard.progress);
+                } else {
+                    finishMovingCard();
+                    getTableCards(players).add(this.playCard);
+                    currentPlayer.playCards.remove(this.playCard);
+                    this.playCard = null;
+                    this.states.game = GameState.NEXT_TURN;
+                }
+                break;
+            case SHOW_END_TURN_BUTTON:
+                List<Input.TouchEvent> touchEvents = input.getTouchEvents();
+                if (isEndButtonPressed(touchEvents)) {
+                    finishTurn();
+                    this.states.game = GameState.NEXT_TURN;
+                    return;
+                }
+                if (isSortButtonPressed(touchEvents)) {
+                    this.states.turn = TurnState.SORT_CARDS_OUT;
+                    this.nextTurnState = TurnState.SORT_CARDS_PRESS;
+                    this.states.isFaded = true;
+                }
+                break;
+            case SHOW_TRICK_BUTTON:
+                List<Input.TouchEvent> trickTouchEvents = input.getTouchEvents();
+                if (isEndButtonPressed(trickTouchEvents)) {
+                    this.states.turn = TurnState.TRICK_CARDS_OUT;
+                    this.states.isFaded = true;
+                }
+                if (isSortButtonPressed(trickTouchEvents)) {
+                    this.states.turn = TurnState.SORT_CARDS_OUT;
+                    this.states.isFaded = true;
+                }
+                break;
+            case SORT_CARDS_OUT:
+                if (!this.turnCombinedCards.isEmpty()) {
+                    takenCardsOut(deltaTime);
+                    return;
+                }
+                this.states.turn = TurnState.SORT_CARDS_PRESS;
+                this.states.isSortDoneButtonShown = true;
+                break;
+            case SORT_CARDS_PRESS:
+                pressSortingCards(input.getTouchEvents(), currentPlayer, deltaTime);
+                break;
+            case SORT_CARDS_IN:
+                if (!this.sortingCards.isEmpty()) {
+                    if (this.movingCard.progress == -1) {
+                        initCardMovement(this.sortingCards.get(this.sortingCards.size() - 1),
+                                GameConstants.BOTTOM_BOARD_X, GameConstants.BOTTOM_BOARD_Y);
+                    } else if (this.movingCard.progress < 1) {
+                        this.cardMover.updateCoordinatesAndDegree(this.movingCard, deltaTime);
+                    } else {
+                        finishMovingCard();
+                        this.sortingCards.remove(this.movingCard.card);
+                        this.turnCombinedCards.add(this.movingCard.card);
+                        this.cardMover.changeCenterCardsPosition(this.sortingCards, false, true);
                     }
-                    this.states.turn = TurnState.TRICK_CARDS_PRESS;
-                    break;
-                case TRICK_CARDS_PRESS:
-                    chooseTrick(input.getTouchEvents(), (User) currentPlayer, deltaTime);
-                    break;
-            }
+                    return;
+                }
+                finishCardSorting();
+                break;
+            case TRICK_CARDS_OUT:
+                if (!this.turnCombinedCards.isEmpty()) {
+                    takenCardsOut(deltaTime);
+                    return;
+                }
+                this.states.turn = TurnState.TRICK_CARDS_PRESS;
+                break;
+            case TRICK_CARDS_PRESS:
+                chooseTrick(input.getTouchEvents(), currentPlayer, deltaTime);
+                break;
         }
     }
 
@@ -431,13 +426,6 @@ public class PlayerTurnMaker extends TurnMaker {
         return cards;
     }
 
-    private void finishMovingCard() {
-        this.movingCard.card.position.x = this.movingCard.endX;
-        this.movingCard.card.position.y = this.movingCard.endY;
-        this.movingCard.card.degree = this.movingCard.endDegree;
-        this.movingCard.progress = -1;
-    }
-
     private Card getTouchedCard(List<Input.TouchEvent> touchEvents, List<Card> cards) {
         for (Input.TouchEvent touchEvent : touchEvents) {
             if (touchEvent.type != Input.TouchEvent.TOUCH_UP) continue;
@@ -448,39 +436,6 @@ public class PlayerTurnMaker extends TurnMaker {
             }
         }
         return null;
-    }
-
-    private void initCardMovement(Card card, int endX, int endY) {
-        card.marked = false;
-        this.movingCard.card = card;
-        this.movingCard.startX = card.position.x;
-        this.movingCard.startY = card.position.y;
-        this.movingCard.endX = endX;
-        this.movingCard.endY = endY;
-
-        movingCard.startDegree = movingCard.card.degree;
-        movingCard.endDegree = getEndDegree(movingCard);
-
-        this.movingCard.progress = 0;
-        double dist = this.cardMover.calculateDistance(this.movingCard);
-        this.movingCard.speed = this.movingCard.step / dist;
-    }
-
-    private float getEndDegree(MovingCard movingCard) {
-        return movingCard.endY == GameConstants.BOTTOM_BOARD_Y || movingCard.endY == GameConstants.TOP_BOARD_Y ? 90 : 0;
-    }
-
-    private CardHolder getCurrentPlayer(List<CardHolder> players) {
-        for (CardHolder player : players) {
-            if (player.isCurrent) {
-                return player;
-            }
-        }
-        return null;
-    }
-
-    private boolean isMyTurn(CardHolder player) {
-        return player.cardPosition == CardPosition.BOTTOM;
     }
 
     private List<Card> getTableCards(List<CardHolder> players) {

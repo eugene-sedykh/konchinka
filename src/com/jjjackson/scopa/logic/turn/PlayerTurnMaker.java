@@ -15,22 +15,18 @@ import java.util.List;
 
 public class PlayerTurnMaker extends TurnMaker {
 
-    private Card playCard;
-    private CardCombinator cardCombinator = new CardCombinator();
-    private List<Card> combinableCards;
     private List<Card> combinedCards = new ArrayList<>();
     private List<Card> turnCombinedCards = new ArrayList<>();
     private List<Card> sortingCards = new ArrayList<>();
     private int startTurnTableCardsNumber;
     private int playCardValue;
-    private TurnState nextTurnState;
 
     public PlayerTurnMaker(States states) {
         super(states);
     }
 
     @Override
-    public void make(Input input, User currentPlayer, List<CardHolder> players, float deltaTime) {
+    public void make(Input input, User currentPlayer, Table table, List<CardHolder> players, float deltaTime) {
         switch (this.states.turn) {
             case WAIT:
                 Card touchedCard = getTouchedCard(input.getTouchEvents(), currentPlayer.playCards);
@@ -46,7 +42,7 @@ public class PlayerTurnMaker extends TurnMaker {
                     finishMovingCard();
                     this.playCard = this.movingCard.card;
                     this.playCardValue = this.playCard.value;
-                    this.combinableCards = getCardsToTake(getPlayCardHeap(players));
+                    this.combinableCards = getCardsToTake(getPlayCardHeap(currentPlayer, players));
                     if (this.playCard.value != GameConstants.JACK_VALUE)
                         if (this.combinableCards.isEmpty()) {
                             this.states.turn = TurnState.PLAY_CARD_TO_TABLE;
@@ -65,10 +61,10 @@ public class PlayerTurnMaker extends TurnMaker {
                 }
                 break;
             case COMBINE_CARDS:
-                combineCards(input.getTouchEvents(), players);
+                combineCards(input.getTouchEvents(),currentPlayer, players);
                 break;
             case COMBINE_JACK_CARDS:
-                combineJackCards(input.getTouchEvents(), players);
+                combineJackCards(input.getTouchEvents(), currentPlayer, players);
                 break;
             case TAKE_PLAY_CARD:
                 if (this.movingCard.progress == -1) {
@@ -107,7 +103,7 @@ public class PlayerTurnMaker extends TurnMaker {
                     }
                     return;
                 }
-                this.combinableCards = getCardsToTake(getPlayCardHeap(players));
+                this.combinableCards = getCardsToTake(getPlayCardHeap(currentPlayer, players));
                 this.states.turn = this.nextTurnState;
                 break;
             case PLAY_CARD_TO_TABLE:
@@ -290,8 +286,8 @@ public class PlayerTurnMaker extends TurnMaker {
         return false;
     }
 
-    private void combineCards(List<Input.TouchEvent> touchEvents, List<CardHolder> players) {
-        List<Card> playCardHeap = getPlayCardHeap(players);
+    private void combineCards(List<Input.TouchEvent> touchEvents, User currentPlayer, List<CardHolder> players) {
+        List<Card> playCardHeap = getPlayCardHeap(currentPlayer, players);
         if (this.playCard != null) {
             playCardHeap.add(this.playCard);
         }
@@ -332,8 +328,8 @@ public class PlayerTurnMaker extends TurnMaker {
         }
     }
 
-    private void combineJackCards(List<Input.TouchEvent> touchEvents, List<CardHolder> players) {
-        List<Card> playCardHeap = getPlayCardHeap(players);
+    private void combineJackCards(List<Input.TouchEvent> touchEvents, User currentPlayer, List<CardHolder> players) {
+        List<Card> playCardHeap = getPlayCardHeap(currentPlayer, players);
         if (this.playCard != null) {
             playCardHeap.add(this.playCard);
         }
@@ -405,25 +401,6 @@ public class PlayerTurnMaker extends TurnMaker {
 
         return this.cardCombinator.filterCombinableCards(playCardHeap, this.playCardValue -
                 this.cardCombinator.getSum(this.combinedCards));
-    }
-
-    private List<Card> getPlayCardHeap(List<CardHolder> players) {
-        List<Card> cards = new ArrayList<>();
-        for (CardHolder player : players) {
-            if (player.cardPosition == CardPosition.BOTTOM) continue;
-            if (player instanceof Table) {
-                cards.addAll(player.playCards);
-            } else {
-                User user = (User) player;
-                if (user.boardCards.isEmpty()) {
-                    continue;
-                }
-                Card card = user.boardCards.get(user.boardCards.size() - 1);
-                cards.add(card);
-            }
-        }
-
-        return cards;
     }
 
     private Card getTouchedCard(List<Input.TouchEvent> touchEvents, List<Card> cards) {

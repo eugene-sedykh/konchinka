@@ -13,6 +13,7 @@ public class GameBoard {
     public final CardDealer cardDealer;
     public Pack pack = new Pack();
     public User currentPlayer;
+    public Table table;
     public List<CardHolder> players = new ArrayList<>();
     public States states;
     private TurnMakerFactory turnMakerFactory;
@@ -24,7 +25,8 @@ public class GameBoard {
         this.players.add(new User(UserType.COMPUTER, CardPosition.LEFT));
         this.players.add(new User(UserType.COMPUTER, CardPosition.TOP));
         this.players.add(new User(UserType.COMPUTER, CardPosition.RIGHT));
-        this.players.add(new Table());
+        this.table = new Table();
+        this.players.add(this.table);
         User user = new User(UserType.PLAYER, CardPosition.BOTTOM);
         user.isCurrent = true;
         this.players.add(user);
@@ -49,7 +51,7 @@ public class GameBoard {
     }
 
     public void makeTurn(Input input, float deltaTime) {
-        this.turnMaker.make(input, this.currentPlayer, this.players, deltaTime);
+        this.turnMaker.make(input, this.currentPlayer, this.table, this.players, deltaTime);
     }
 
     public void switchPlayer() {
